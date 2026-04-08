@@ -9,12 +9,16 @@ from pathlib import Path
 from analyzers.image_analyzer import analyze_image
 from analyzers.video_analyzer import analyze_video
 from analyzers.metrics import compare_metric_sets
+from fastapi.middleware.cors import CORSMiddleware
+
+
 
 app = FastAPI(title="MotionInsight AI API", version="1.0.0")
 
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://motion-insight-ai.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
