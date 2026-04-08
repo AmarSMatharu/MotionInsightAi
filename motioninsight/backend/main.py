@@ -1,4 +1,6 @@
 import os
+os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "0"
+os.environ["DISPLAY"] = ":0"
 import traceback
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
