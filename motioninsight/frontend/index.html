@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MotionInsight AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#f7f6f2;
+      --bg2:#ffffff;
+      --bg3:#f0ede8;
+      --border:rgba(0,0,0,0.08);
+      --border2:rgba(0,0,0,0.13);
+      --blue:#1a56ff;
+      --blue-soft:rgba(26,86,255,0.08);
+      --blue-border:rgba(26,86,255,0.18);
+      --teal:#00a896;
+      --teal-soft:rgba(0,168,150,0.08);
+      --red:#e53e3e;
+      --amber:#f59e0b;
+      --text:#0f0f0f;
+      --muted:#777;
+      --muted2:#bbb;
+      --mono:'JetBrains Mono',monospace;
+      --display:'Bebas Neue',sans-serif;
+      --body:'Outfit',sans-serif;
+    }
+    html,body{min-height:100%;font-family:var(--body);background:var(--bg);color:var(--text);overflow-x:hidden}
+
+    /* ── HEADER ── */
+    .header{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 48px;height:60px;
+      background:rgba(247,246,242,0.92);
+      border-bottom:1px solid var(--border);
+      backdrop-filter:blur(16px);
+      position:sticky;top:0;z-index:100;
+    }
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-hex{
+      width:32px;height:32px;background:var(--blue);
+      clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+      display:grid;place-items:center;font-size:13px;
+    }
+    .logo-name{font-family:var(--display);font-size:20px;letter-spacing:2px}
+    .logo-name em{font-style:normal;color:var(--blue)}
+    .status-chip{
+      display:flex;align-items:center;gap:6px;
+      font-family:var(--mono);font-size:10px;letter-spacing:1px;
+      padding:4px 11px;border-radius:20px;border:1px solid;
+      transition:all .35s;
+    }
+    .status-chip.checking{color:var(--muted2);border-color:var(--muted2)}
+    .status-chip.online{color:var(--teal);border-color:rgba(0,168,150,.35);background:var(--teal-soft)}
+    .status-chip.offline{color:var(--red);border-color:rgba(229,62,62,.3);background:rgba(229,62,62,.05)}
+    .chip-dot{width:5px;height:5px;border-radius:50%}
+    .checking .chip-dot{background:var(--muted2)}
+    .online .chip-dot{background:var(--teal);box-shadow:0 0 5px var(--teal);animation:pulse 2s infinite}
+    .offline .chip-dot{background:var(--red)}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+    /* ── HERO ── */
+    .hero{
+      padding:72px 48px 52px;
+      max-width:900px;
+    }
+    .hero-kicker{
+      font-family:var(--mono);font-size:11px;
+      color:var(--blue);letter-spacing:3px;text-transform:uppercase;
+      margin-bottom:18px;display:flex;align-items:center;gap:10px;
+    }
+    .hero-kicker::before{content:'';width:20px;height:1px;background:var(--blue)}
+    .hero h1{
+      font-family:var(--display);
+      font-size:clamp(56px,9vw,104px);
+      letter-spacing:3px;line-height:.92;
+      margin-bottom:22px;
+    }
+    .hero h1 .hi{color:var(--blue)}
+    .hero-desc{
+      font-size:16px;color:var(--muted);
+      max-width:480px;line-height:1.75;font-weight:300;
+    }
+
+    /* ── OFFLINE BANNER ── */
+    .ob{
+      margin:0 48px 36px;
+      background:#fff;border:1px solid rgba(229,62,62,.18);
+      border-left:3px solid var(--red);
+      border-radius:10px;padding:20px 24px;
+      display:flex;gap:18px;align-items:flex-start;
+      animation:drop .3s ease;box-shadow:0 2px 12px rgba(0,0,0,.05);
+    }
+    @keyframes drop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+    .ob-icon{font-size:24px;flex-shrink:0;margin-top:2px}
+    .ob-title{font-family:var(--display);font-size:18px;letter-spacing:1px;color:var(--red);margin-bottom:4px}
+    .ob-body{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px}
+    .ob-code{
+      background:var(--bg3);border:1px solid var(--border2);
+      border-radius:6px;padding:10px 14px;
+      font-family:var(--mono);font-size:11px;
+      color:#555;line-height:2;margin-bottom:10px;
+    }
+    .ob-code .cmd{color:var(--blue)}
+    .ob-code .cmt{color:var(--muted2)}
+    .retry{
+      display:inline-flex;align-items:center;gap:5px;
+      padding:6px 14px;border-radius:6px;
+      border:1px solid rgba(229,62,62,.25);background:transparent;
+      color:var(--red);font-family:var(--mono);font-size:10px;
+      letter-spacing:1px;cursor:pointer;transition:all .2s;
+    }
+    .retry:hover{background:rgba(229,62,62,.06)}
+
+    /* ── WORKSPACE ── */
+    .workspace{padding:0 48px 80px;max-width:1200px}
+
+    /* mode + type tabs */
+    .tab-row{display:flex;align-items:center;gap:10px;margin-bottom:28px;flex-wrap:wrap}
+    .tab-group{display:flex;background:#fff;border:1px solid var(--border);border-radius:8px;padding:3px;gap:2px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+    .tab{
+      padding:7px 20px;border-radius:6px;border:none;
+      background:transparent;color:var(--muted);
+      font-family:var(--body);font-size:13px;font-weight:600;
+      cursor:pointer;transition:all .18s;white-space:nowrap;
+    }
+    .tab.on{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(26,86,255,.28)}
+    .tab:hover:not(.on){color:var(--text);background:var(--bg3)}
+    .sep{width:1px;height:20px;background:var(--border2)}
+
+    /* ── UPLOAD AREA ── */
+    .upload-wrap{
+      display:grid;gap:16px;margin-bottom:24px;
+    }
+    .upload-wrap.one{grid-template-columns:1fr}
+    .upload-wrap.two{grid-template-columns:1fr 1fr}
+
+    .dropzone{
+      border:1.5px dashed var(--border2);
+      border-radius:12px;
+      padding:52px 24px;
+      text-align:center;
+      cursor:pointer;
+      transition:all .22s;
+      background:#fff;
+      position:relative;overflow:hidden;
+    }
+    .dropzone::before{
+      content:'';position:absolute;inset:0;
+      background:radial-gradient(ellipse at 50% -10%,var(--blue-soft),transparent 65%);
+      opacity:0;transition:opacity .25s;
+    }
+    .dropzone:hover::before,.dropzone.drag::before{opacity:1}
+    .dropzone:hover,.dropzone.drag{border-color:var(--blue);border-style:solid}
+    .dropzone.ready{border-color:rgba(0,168,150,.45);border-style:solid;background:rgba(0,168,150,.03)}
+    .dropzone.ready::before{background:radial-gradient(ellipse at 50% -10%,var(--teal-soft),transparent 65%);opacity:1}
+    .dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .dz-emoji{font-size:44px;display:block;margin-bottom:14px;position:relative}
+    .dz-head{font-family:var(--display);font-size:15px;letter-spacing:2px;color:var(--muted);margin-bottom:6px;position:relative}
+    .dropzone.ready .dz-head{font-size:11px;color:var(--muted2)}
+    .dz-sub{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:.5px;position:relative}
+    .dz-file{font-family:var(--mono);font-size:12px;color:var(--teal);margin-top:10px;font-weight:500;position:relative;word-break:break-all}
+
+    /* frame slider */
+    .frame-row{display:flex;align-items:center;gap:14px;margin-bottom:20px}
+    .fr-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1px;white-space:nowrap}
+    input[type=range]{flex:1;appearance:none;height:2px;background:var(--bg3);border-radius:2px;outline:none}
+    input[type=range]::-webkit-slider-thumb{appearance:none;width:16px;height:16px;border-radius:50%;background:var(--blue);cursor:pointer;border:2.5px solid #fff;box-shadow:0 0 0 1px var(--border2),0 2px 6px rgba(26,86,255,.3)}
+    .fr-val{font-family:var(--display);font-size:20px;color:var(--blue);min-width:28px;text-align:center;line-height:1}
+
+    /* CTA */
+    .cta-area{display:flex;align-items:center;gap:16px}
+    .cta-btn{
+      display:inline-flex;align-items:center;gap:10px;
+      padding:13px 34px;
+      background:var(--blue);color:#fff;
+      border:none;border-radius:8px;
+      font-family:var(--display);font-size:17px;letter-spacing:2px;
+      cursor:pointer;transition:all .2s;
+      box-shadow:0 3px 14px rgba(26,86,255,.3);
+    }
+    .cta-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,86,255,.38)}
+    .cta-btn:disabled{opacity:.35;cursor:not-allowed;box-shadow:none}
+    .cta-note{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:.5px}
+    .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
+    @keyframes rot{to{transform:rotate(360deg)}}
+
+    /* ── RESULTS ── */
+    .results{margin-top:32px;animation:up .45s cubic-bezier(.16,1,.3,1) forwards}
+    @keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+    /* side-by-side for compare */
+    .result-cols{display:grid;gap:20px}
+    .result-cols.two{grid-template-columns:1fr 1fr}
+    .result-cols.one{grid-template-columns:1fr}
+
+    /* result card */
+    .rcard{
+      background:#fff;border:1px solid var(--border);
+      border-radius:14px;overflow:hidden;
+      box-shadow:0 2px 16px rgba(0,0,0,.06);
+    }
+    .rcard-top{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:14px 20px;background:var(--bg3);
+      border-bottom:1px solid var(--border);
+    }
+    .rcard-label{font-family:var(--display);font-size:15px;letter-spacing:2px}
+    .rcard-badge{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;padding:3px 9px;border-radius:4px}
+    .badge-ok{background:rgba(0,168,150,.1);color:var(--teal);border:1px solid rgba(0,168,150,.25)}
+    .badge-err{background:rgba(229,62,62,.08);color:var(--red);border:1px solid rgba(229,62,62,.18)}
+    .rcard-body{padding:20px;display:flex;flex-direction:column;gap:20px}
+
+    /* annotated image */
+    .pose-img{width:100%;border-radius:8px;border:1px solid var(--border);display:block}
+
+    /* frame strip (video) */
+    .fstrip{display:flex;gap:8px}
+    .fstrip-item{flex:1;border-radius:7px;overflow:hidden;border:1px solid var(--border)}
+    .fstrip-item img{width:100%;display:block}
+
+    /* description block */
+    .desc-block{
+      background:var(--bg3);border-radius:10px;padding:18px 20px;
+      border-left:3px solid var(--blue);
+    }
+    .block-label{
+      font-family:var(--mono);font-size:9px;letter-spacing:2px;
+      color:var(--blue);text-transform:uppercase;margin-bottom:10px;
+      display:flex;align-items:center;gap:6px;
+    }
+    .block-label::after{content:'';flex:1;height:1px;background:var(--blue-border)}
+    .block-text{font-size:14px;color:#333;line-height:1.8;font-weight:400}
+
+    /* feedback block */
+    .feed-block{
+      background:var(--bg3);border-radius:10px;padding:18px 20px;
+      border-left:3px solid var(--teal);
+    }
+    .feed-block .block-label{color:var(--teal)}
+    .feed-block .block-label::after{background:rgba(0,168,150,.2)}
+
+    /* feedback items parsed from AI */
+    .feed-list{display:flex;flex-direction:column;gap:10px;margin-top:2px}
+    .feed-item{display:flex;gap:12px;align-items:flex-start}
+    .feed-num{
+      font-family:var(--display);font-size:18px;color:var(--teal);
+      line-height:1;flex-shrink:0;width:20px;margin-top:1px;
+    }
+    .feed-text{font-size:14px;color:#333;line-height:1.7}
+
+    /* compare diff bar */
+    .diff-section{margin-top:4px}
+    .diff-title{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+    .diff-title::after{content:'';flex:1;height:1px;background:var(--border)}
+    .diff-grid{display:flex;flex-direction:column;gap:0}
+    .diff-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)}
+    .diff-row:last-child{border-bottom:none}
+    .diff-name{font-family:var(--mono);font-size:11px;color:var(--muted);flex:1;text-transform:lowercase}
+    .diff-vals{display:flex;gap:8px;align-items:center;font-family:var(--mono);font-size:11px}
+    .dv{color:var(--text)}
+    .darr{color:var(--muted2)}
+    .ddelta{font-weight:600;font-size:12px;min-width:52px;text-align:right}
+    .ddelta.pos{color:var(--teal)}.ddelta.neg{color:var(--red)}.ddelta.neu{color:var(--muted2)}
+
+    /* err */
+    .err{background:#fff5f5;border:1px solid rgba(229,62,62,.18);border-radius:8px;padding:12px 16px;font-family:var(--mono);font-size:12px;color:var(--red);margin-top:16px;display:flex;gap:8px;align-items:center}
+
+    /* footer */
+    .footer{padding:22px 48px;border-top:1px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+    .footer-l{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:1px}
+    .footer-l b{color:var(--blue);font-weight:500}
+    .footer-r{display:flex;gap:18px}
+    .fl{font-family:var(--mono);font-size:10px;color:var(--muted2);text-decoration:none;letter-spacing:1px;transition:color .2s}
+    .fl:hover{color:var(--blue)}
+
+    @media(max-width:700px){
+      .header,.hero,.workspace,.footer{padding-left:20px;padding-right:20px}
+      .hero{padding-top:48px;padding-bottom:36px}
+      .hero h1{font-size:54px}
+      .upload-wrap.two,.result-cols.two{grid-template-columns:1fr}
+      .ob{margin:0 20px 28px}
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useRef,useEffect,useCallback}=React;
+const API='https://motioninsightai.onrender.com';
+
+/* convert numpy array to canvas image URL */
+function toImg(arr){
+  if(!arr)return null;
+  const h=arr.length,w=arr[0].length;
+  const cv=document.createElement('canvas');
+  cv.width=w;cv.height=h;
+  const ctx=cv.getContext('2d'),id=ctx.createImageData(w,h);
+  let i=0;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const p=arr[y][x];id.data[i++]=p[0];id.data[i++]=p[1];id.data[i++]=p[2];id.data[i++]=255}
+  ctx.putImageData(id,0,0);
+  return cv.toDataURL('image/jpeg',.9);
+}
+
+/* ── Backend status hook ── */
+function useBackend(){
+  const[st,setSt]=useState('checking');
+  const check=useCallback(async()=>{
+    setSt('checking');
+    try{const r=await fetch(API+'/health',{signal:AbortSignal.timeout(3000)});setSt(r.ok?'online':'offline')}
+    catch{setSt('offline')}
+  },[]);
+  useEffect(()=>{check()},[check]);
+  return{st,check};
+}
+
+/* ── StatusChip ── */
+function StatusChip({st}){
+  const map={checking:'CONNECTING',online:'LIVE',offline:'OFFLINE'};
+  return <div className={`status-chip ${st}`}><div className="chip-dot"/>{map[st]}</div>;
+}
+
+/* ── Offline Banner ── */
+function OfflineBanner({onRetry}){
+  return(
+    <div className="ob">
+      <div className="ob-icon">🔌</div>
+      <div>
+        <div className="ob-title">BACKEND OFFLINE</div>
+        <div className="ob-body">Start the FastAPI server to enable analysis. Run these commands:</div>
+        <div className="ob-code">
+          <span className="cmt"># Navigate to backend</span>{'\n'}
+          <span className="cmd">cd motioninsight/backend</span>{'\n\n'}
+          <span className="cmt"># Start the server</span>{'\n'}
+          <span className="cmd">python -m uvicorn main:app --reload --port 8000</span>
+        </div>
+        <button className="retry" onClick={onRetry}>↻ RETRY</button>
+      </div>
+    </div>
+  );
+}
+
+/* ── DropZone ── */
+function DropZone({head,accept,onFile,file,hint}){
+  const[drag,setDrag]=useState(false);
+  const ref=useRef();
+  return(
+    <div
+      className={`dropzone ${file?'ready':''} ${drag?'drag':''}`}
+      onDragOver={e=>{e.preventDefault();setDrag(true)}}
+      onDragLeave={()=>setDrag(false)}
+      onDrop={e=>{e.preventDefault();setDrag(false);const f=e.dataTransfer.files[0];if(f)onFile(f)}}
+      onClick={()=>ref.current.click()}
+    >
+      <input ref={ref} type="file" accept={accept} onChange={e=>e.target.files[0]&&onFile(e.target.files[0])} onClick={e=>e.stopPropagation()}/>
+      <span className="dz-emoji">{file?'✅':accept.includes('mp4')?'🎬':'📸'}</span>
+      <div className="dz-head">{head}</div>
+      <div className="dz-sub">{hint}</div>
+      {file&&<div className="dz-file">{file.name}</div>}
+    </div>
+  );
+}
+
+/* ── Description + Feedback renderer ── */
+/* The AI returns a blob of text — we split it into a description paragraph
+   and numbered feedback points if they exist */
+function AIResult({text,label,color}){
+  if(!text)return null;
+  /* Try to parse numbered points like "1." or "1)" */
+  const lines=text.split('\n').map(l=>l.trim()).filter(Boolean);
+  const feedLines=lines.filter(l=>/^[1-9][\.\)]/.test(l));
+  const descLines=lines.filter(l=>!/^[1-9][\.\)]/.test(l));
+  const desc=descLines.join(' ');
+  const isDesc=label==='MOVEMENT DESCRIPTION';
+
+  return(
+    <div className={isDesc?'desc-block':'feed-block'}>
+      <div className="block-label">{isDesc?'📋':' 💡'} {label}</div>
+      {isDesc?(
+        <div className="block-text">{text}</div>
+      ):(
+        feedLines.length>0?(
+          <div className="feed-list">
+            {feedLines.map((l,i)=>{
+              const clean=l.replace(/^[1-9][\.\)]\s*/,'');
+              return(
+                <div className="feed-item" key={i}>
+                  <div className="feed-num">{i+1}</div>
+                  <div className="feed-text">{clean}</div>
+                </div>
+              );
+            })}
+          </div>
+        ):(
+          <div className="block-text">{text}</div>
+        )
+      )}
+    </div>
+  );
+}
+
+/* ── Single Result Card ── */
+function ResultCard({title,result,isVideo}){
+  if(!result)return null;
+  const imgSrc=result.annotated_image?toImg(result.annotated_image):null;
+  const frames=(result.preview_frames||[]).map(toImg);
+  const desc=result.description||'';
+
+  /* Split description into two parts if it has numbered points */
+  const lines=desc.split('\n').map(l=>l.trim()).filter(Boolean);
+  const feedLines=lines.filter(l=>/^[1-9][\.\)]/.test(l));
+  const descLines=lines.filter(l=>!/^[1-9][\.\)]/.test(l)).join(' ');
+  const hasFeedback=feedLines.length>0;
+
+  return(
+    <div className="rcard">
+      <div className="rcard-top">
+        <div className="rcard-label">{title}</div>
+        <div className={`rcard-badge ${result.success?'badge-ok':'badge-err'}`}>
+          {result.success?'POSE DETECTED':'NO POSE FOUND'}
+        </div>
+      </div>
+      <div className="rcard-body">
+        {imgSrc&&<img className="pose-img" src={imgSrc} alt="Pose"/>}
+        {frames.length>0&&(
+          <div className="fstrip">
+            {frames.map((s,i)=><div className="fstrip-item" key={i}><img src={s} alt=""/></div>)}
+          </div>
+        )}
+        {/* Description */}
+        {desc&&(
+          <div className="desc-block">
+            <div className="block-label">📋 MOVEMENT DESCRIPTION</div>
+            <div className="block-text">{descLines||desc}</div>
+          </div>
+        )}
+        {/* Feedback points */}
+        {hasFeedback&&(
+          <div className="feed-block">
+            <div className="block-label">💡 COACHING FEEDBACK</div>
+            <div className="feed-list">
+              {feedLines.map((l,i)=>(
+                <div className="feed-item" key={i}>
+                  <div className="feed-num">{i+1}</div>
+                  <div className="feed-text">{l.replace(/^[1-9][\.\)]\s*/,'')}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ── Compare Diff Summary ── */
+function DiffSummary({comparison}){
+  if(!comparison)return null;
+  const KEY_LABELS={
+    left_knee_angle:'Left Knee',right_knee_angle:'Right Knee',
+    left_elbow_angle:'Left Elbow',right_elbow_angle:'Right Elbow',
+    avg_elbow_angle:'Avg Elbow',avg_knee_angle:'Avg Knee',
+    left_right_elbow_diff:'Elbow Symmetry',left_right_knee_diff:'Knee Symmetry',
+  };
+  return(
+    <div className="rcard" style={{marginTop:0}}>
+      <div className="rcard-top">
+        <div className="rcard-label">CHANGE SUMMARY</div>
+        <div className="rcard-badge badge-ok">BEFORE → AFTER</div>
+      </div>
+      <div className="rcard-body">
+        <div className="diff-grid">
+          {comparison.map(row=>{
+            const d=row.difference;
+            const cls=d==null?'neu':Math.abs(d)<0.5?'neu':d>0?'pos':'neg';
+            const sign=d!=null&&d>0?'+':'';
+            return(
+              <div className="diff-row" key={row.metric}>
+                <div className="diff-name">{KEY_LABELS[row.metric]||row.metric.replace(/_/g,' ')}</div>
+                <div className="diff-vals">
+                  <span className="dv">{row.Before!=null?row.Before.toFixed(1)+'°':'—'}</span>
+                  <span className="darr">→</span>
+                  <span className="dv">{row.After!=null?row.After.toFixed(1)+'°':'—'}</span>
+                </div>
+                <div className={`ddelta ${cls}`}>{d!=null?sign+d.toFixed(1)+'°':'—'}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Analyze One ── */
+function AnalyzeOne({isVideo,offline}){
+  const[file,setFile]=useState(null);
+  const[n,setN]=useState(10);
+  const[loading,setLoading]=useState(false);
+  const[result,setResult]=useState(null);
+  const[err,setErr]=useState(null);
+  const accept=isVideo?'.mp4,.mov,.avi,.mkv':'.jpg,.jpeg,.png';
+
+  const run=async()=>{
+    setLoading(true);setResult(null);setErr(null);
+    try{
+      const fd=new FormData();
+      fd.append('file',file);
+      if(isVideo)fd.append('sample_every_n_frames',n);
+      const r=await fetch(API+(isVideo?'/analyze/video':'/analyze/image'),{method:'POST',body:fd});
+      if(!r.ok)throw new Error(await r.text());
+      setResult(await r.json());
+    }catch(e){setErr(e.message);}
+    finally{setLoading(false);}
+  };
+
+  return(
+    <>
+      <div className="upload-wrap one">
+        <DropZone head={isVideo?'DROP YOUR VIDEO':'DROP YOUR IMAGE'} accept={accept} onFile={setFile} file={file} hint={isVideo?'MP4 · MOV · AVI · MKV':'JPG · JPEG · PNG'}/>
+      </div>
+      {isVideo&&(
+        <div className="frame-row">
+          <span className="fr-label">SAMPLE EVERY</span>
+          <input type="range" min={1} max={30} value={n} onChange={e=>setN(+e.target.value)}/>
+          <span className="fr-val">{n}</span>
+          <span className="fr-label">FRAMES</span>
+        </div>
+      )}
+      <div className="cta-area">
+        <button className="cta-btn" disabled={!file||loading||offline} onClick={run}>
+          {loading?<><div className="spin"/>ANALYZING…</>:offline?'BACKEND OFFLINE':`ANALYZE ${isVideo?'VIDEO':'IMAGE'}`}
+        </button>
+        {!file&&<span className="cta-note">Upload a file to get started</span>}
+      </div>
+      {err&&<div className="err">⚠ {err}</div>}
+      {result&&(
+        <div className="results">
+          <div className="result-cols one">
+            <ResultCard title="YOUR ANALYSIS" result={result} isVideo={isVideo}/>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ── Compare Two ── */
+function CompareTwo({isVideo,offline}){
+  const[before,setBefore]=useState(null);
+  const[after,setAfter]=useState(null);
+  const[n,setN]=useState(10);
+  const[loading,setLoading]=useState(false);
+  const[data,setData]=useState(null);
+  const[err,setErr]=useState(null);
+  const accept=isVideo?'.mp4,.mov,.avi,.mkv':'.jpg,.jpeg,.png';
+
+  const run=async()=>{
+    setLoading(true);setData(null);setErr(null);
+    try{
+      const fd=new FormData();
+      fd.append('before',before);fd.append('after',after);
+      if(isVideo)fd.append('sample_every_n_frames',n);
+      const r=await fetch(API+(isVideo?'/compare/videos':'/compare/images'),{method:'POST',body:fd});
+      if(!r.ok)throw new Error(await r.text());
+      setData(await r.json());
+    }catch(e){setErr(e.message);}
+    finally{setLoading(false);}
+  };
+
+  return(
+    <>
+      <div className="upload-wrap two">
+        <DropZone head="BEFORE" accept={accept} onFile={setBefore} file={before} hint={isVideo?'MP4 · MOV · AVI · MKV':'JPG · JPEG · PNG'}/>
+        <DropZone head="AFTER"  accept={accept} onFile={setAfter}  file={after}  hint={isVideo?'MP4 · MOV · AVI · MKV':'JPG · JPEG · PNG'}/>
+      </div>
+      {isVideo&&(
+        <div className="frame-row">
+          <span className="fr-label">SAMPLE EVERY</span>
+          <input type="range" min={1} max={30} value={n} onChange={e=>setN(+e.target.value)}/>
+          <span className="fr-val">{n}</span>
+          <span className="fr-label">FRAMES</span>
+        </div>
+      )}
+      <div className="cta-area">
+        <button className="cta-btn" disabled={!before||!after||loading||offline} onClick={run}>
+          {loading?<><div className="spin"/>COMPARING…</>:offline?'BACKEND OFFLINE':`COMPARE ${isVideo?'VIDEOS':'IMAGES'}`}
+        </button>
+        {(!before||!after)&&<span className="cta-note">Upload both files to compare</span>}
+      </div>
+      {err&&<div className="err">⚠ {err}</div>}
+      {data&&(
+        <div className="results">
+          <div className="result-cols two" style={{marginBottom:16}}>
+            <ResultCard title="BEFORE" result={data.before} isVideo={isVideo}/>
+            <ResultCard title="AFTER"  result={data.after}  isVideo={isVideo}/>
+          </div>
+          {data.comparison&&<DiffSummary comparison={data.comparison}/>}
+        </div>
+      )}
+    </>
+  );
+}
+
+/* ── App ── */
+function App(){
+  const[mode,setMode]=useState('analyze');
+  const[type,setType]=useState('image');
+  const{st,check}=useBackend();
+  const offline=st!=='online';
+
+  return(
+    <>
+      <header className="header">
+        <div className="logo">
+          <div className="logo-hex">⚡</div>
+          <div className="logo-name">Motion<em>Insight</em> AI</div>
+        </div>
+        <StatusChip st={st}/>
+      </header>
+
+      <section className="hero">
+        <div className="hero-kicker">AI-Powered Movement Analysis</div>
+        <h1>MOVE<br/>BETTER.<br/><span className="hi">FASTER.</span></h1>
+        <p className="hero-desc">Upload an image or video and get instant AI feedback on your movement — posture, symmetry, and actionable coaching tips.</p>
+      </section>
+
+      {st==='offline'&&<OfflineBanner onRetry={check}/>}
+
+      <div className="workspace">
+        <div className="tab-row">
+          <div className="tab-group">
+            <button className={`tab ${mode==='analyze'?'on':''}`} onClick={()=>setMode('analyze')}>Analyze</button>
+            <button className={`tab ${mode==='compare'?'on':''}`} onClick={()=>setMode('compare')}>Compare Before / After</button>
+          </div>
+          <div className="sep"/>
+          <div className="tab-group">
+            <button className={`tab ${type==='image'?'on':''}`} onClick={()=>setType('image')}>📸 Image</button>
+            <button className={`tab ${type==='video'?'on':''}`} onClick={()=>setType('video')}>🎬 Video</button>
+          </div>
+        </div>
+
+        <div style={{opacity:offline?.55:1,transition:'opacity .3s'}}>
+          {mode==='analyze'
+            ?<AnalyzeOne key={`a${type}`} isVideo={type==='video'} offline={offline}/>
+            :<CompareTwo key={`c${type}`} isVideo={type==='video'} offline={offline}/>
+          }
+        </div>
+      </div>
+
+      <footer className="footer">
+        <div className="footer-l">MOTIONINSIGHT <b>AI</b> · MEDIAPIPE + GROQ LLAMA 4</div>
+        <div className="footer-r">
+          <a className="fl" href="http://localhost:8000/docs" target="_blank">API DOCS</a>
+          <a className="fl" href="http://localhost:8000/health" target="_blank">HEALTH</a>
+        </div>
+      </footer>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
