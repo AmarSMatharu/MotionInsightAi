@@ -3,5 +3,5 @@ services:
     name: motioninsightai
     runtime: python
     rootDir: motioninsight/backend
-    buildCommand: pip install -r requirements.txt
+    buildCommand: bash build.sh
     startCommand: uvicorn main:app --host 0.0.0.0 --port 8000
