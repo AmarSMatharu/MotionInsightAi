@@ -2,6 +2,7 @@ import os
 import io
 import json
 import base64
+import logging
 from typing import Any
 
 from dotenv import load_dotenv
@@ -10,6 +11,8 @@ from PIL import Image
 from groq import Groq
 
 from config import GROQ_VISION_MODEL
+
+logger = logging.getLogger(__name__)
 
 load_dotenv()
 
@@ -118,6 +121,7 @@ Extra context: {extra_context}
         messages=messages,
         temperature=0.4,
         max_completion_tokens=400,
+        timeout=30.0,  # 30-second hard cap — prevents worker stall on slow upstream
     )
 
     return completion.choices[0].message.content.strip()

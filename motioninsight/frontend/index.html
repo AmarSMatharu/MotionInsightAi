@@ -164,6 +164,8 @@
     .dropzone.ready .dz-head{font-size:11px;color:var(--muted2)}
     .dz-sub{font-family:var(--mono);font-size:10px;color:var(--muted2);letter-spacing:.5px;position:relative}
     .dz-file{font-family:var(--mono);font-size:12px;color:var(--teal);margin-top:10px;font-weight:500;position:relative;word-break:break-all}
+    .dz-warn{font-family:var(--mono);font-size:11px;color:var(--red);margin-top:8px;position:relative}
+    .dropzone:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 
     /* frame slider */
     .frame-row{display:flex;align-items:center;gap:14px;margin-bottom:20px}
@@ -294,7 +296,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <script type="text/babel">
 const {useState,useRef,useEffect,useCallback}=React;
-const API='https://motioninsightai.onrender.com';
+const API=window.location.hostname==='localhost'||window.location.hostname==='127.0.0.1'?'http://127.0.0.1:8000':'https://motioninsightai.onrender.com';
+const API_DOCS=API+'/docs';
+const API_HEALTH=API+'/health';
 
 /* convert numpy array to canvas image URL */
 function toImg(arr){
@@ -338,32 +342,46 @@ function OfflineBanner({onRetry}){
         <div className="ob-code">
           <span className="cmt"># Navigate to backend</span>{'\n'}
           <span className="cmd">cd motioninsight/backend</span>{'\n\n'}
-          <span className="cmt"># Start the server</span>{'\n'}
-          <span className="cmd">python -m uvicorn main:app --reload --port 8000</span>
+          <span className="cmt"># Install deps, download model, and start</span>{'\n'}
+          <span className="cmd">bash start.sh</span>
         </div>
-        <button className="retry" onClick={onRetry}>↻ RETRY</button>
+        <button className="retry" onClick={onRetry} aria-label="Retry backend connection">↻ RETRY</button>
       </div>
     </div>
   );
 }
 
 /* ── DropZone ── */
+const MAX_IMAGE_MB=50,MAX_VIDEO_MB=200;
 function DropZone({head,accept,onFile,file,hint}){
   const[drag,setDrag]=useState(false);
+  const[sizeWarn,setSizeWarn]=useState(null);
   const ref=useRef();
+  const isVideo=accept.includes('mp4');
+  const maxMB=isVideo?MAX_VIDEO_MB:MAX_IMAGE_MB;
+  const handleFile=f=>{
+    setSizeWarn(null);
+    if(f.size>maxMB*1024*1024){setSizeWarn(`File too large (${(f.size/1024/1024).toFixed(1)} MB). Max: ${maxMB} MB.`);return;}
+    onFile(f);
+  };
   return(
     <div
       className={`dropzone ${file?'ready':''} ${drag?'drag':''}`}
       onDragOver={e=>{e.preventDefault();setDrag(true)}}
       onDragLeave={()=>setDrag(false)}
-      onDrop={e=>{e.preventDefault();setDrag(false);const f=e.dataTransfer.files[0];if(f)onFile(f)}}
+      onDrop={e=>{e.preventDefault();setDrag(false);const f=e.dataTransfer.files[0];if(f)handleFile(f)}}
       onClick={()=>ref.current.click()}
+      role="button"
+      aria-label={`${head} — drop zone`}
+      tabIndex={0}
+      onKeyDown={e=>(e.key==='Enter'||e.key===' ')&&ref.current.click()}
     >
-      <input ref={ref} type="file" accept={accept} onChange={e=>e.target.files[0]&&onFile(e.target.files[0])} onClick={e=>e.stopPropagation()}/>
-      <span className="dz-emoji">{file?'✅':accept.includes('mp4')?'🎬':'📸'}</span>
+      <input ref={ref} type="file" accept={accept} onChange={e=>e.target.files[0]&&handleFile(e.target.files[0])} onClick={e=>e.stopPropagation()} aria-hidden="true" tabIndex={-1}/>
+      <span className="dz-emoji" aria-hidden="true">{file?'✅':isVideo?'🎬':'📸'}</span>
       <div className="dz-head">{head}</div>
       <div className="dz-sub">{hint}</div>
       {file&&<div className="dz-file">{file.name}</div>}
+      {sizeWarn&&<div className="dz-warn" role="alert">{sizeWarn}</div>}
     </div>
   );
 }
@@ -428,10 +446,10 @@ function ResultCard({title,result,isVideo}){
         </div>
       </div>
       <div className="rcard-body">
-        {imgSrc&&<img className="pose-img" src={imgSrc} alt="Pose"/>}
+        {imgSrc&&<img className="pose-img" src={imgSrc} alt="Annotated pose with detected landmarks"/>}
         {frames.length>0&&(
           <div className="fstrip">
-            {frames.map((s,i)=><div className="fstrip-item" key={i}><img src={s} alt=""/></div>)}
+            {frames.map((s,i)=><div className="fstrip-item" key={i}><img src={s} alt={`Video frame ${i+1} with pose overlay`} loading="lazy"/></div>)}
           </div>
         )}
         {/* Description */}
@@ -658,8 +676,8 @@ function App(){
       <footer className="footer">
         <div className="footer-l">MOTIONINSIGHT <b>AI</b> · MEDIAPIPE + GROQ LLAMA 4</div>
         <div className="footer-r">
-          <a className="fl" href="http://localhost:8000/docs" target="_blank">API DOCS</a>
-          <a className="fl" href="http://localhost:8000/health" target="_blank">HEALTH</a>
+          <a className="fl" href={API_DOCS} target="_blank" rel="noopener noreferrer">API DOCS</a>
+          <a className="fl" href={API_HEALTH} target="_blank" rel="noopener noreferrer">HEALTH</a>
         </div>
       </footer>
     </>

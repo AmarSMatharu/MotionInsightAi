@@ -1,30 +1,33 @@
 #!/bin/bash
-# MotionInsight AI - Backend Startup Script
-# Run from the backend/ directory
+# MotionInsight AI — local development startup
+# Run from the backend/ directory: bash start.sh
 
-set -e
+set -euo pipefail
 
-echo "🚀 Starting MotionInsight AI Backend..."
-
-# Check Python
+echo "==> Checking Python..."
 if ! command -v python3 &> /dev/null; then
-    echo "❌ Python3 not found. Please install Python 3.9+"
-    exit 1
+  echo "ERROR: Python 3 not found. Please install Python 3.10+."
+  exit 1
 fi
 
-# Install dependencies
-echo "📦 Installing dependencies..."
+echo "==> Installing dependencies..."
 pip install -r requirements.txt --quiet
 
-# Check for model file
+echo "==> Checking for MediaPipe pose model..."
 if [ ! -f "models/pose_landmarker_full.task" ]; then
-    echo "📥 Downloading MediaPipe pose model..."
-    mkdir -p models
-    curl -L -o models/pose_landmarker_full.task \
-      "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task"
-    echo "✅ Model downloaded."
+  echo "==> Downloading pose_landmarker_full.task (~30 MB)..."
+  mkdir -p models
+  curl -fsSL -o models/pose_landmarker_full.task \
+    "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/latest/pose_landmarker_full.task"
+  echo "==> Model downloaded."
 fi
 
-# Start server
-echo "✅ Starting FastAPI server on http://localhost:8000"
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+if [ ! -f ".env" ]; then
+  echo ""
+  echo "WARNING: No .env file found. Create one with:"
+  echo "  echo 'GROQ_API_KEY=your_key_here' > .env"
+  echo ""
+fi
+
+echo "==> Starting FastAPI server on http://localhost:8000"
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
