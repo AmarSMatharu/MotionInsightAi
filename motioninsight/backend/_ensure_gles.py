@@ -16,15 +16,16 @@ logger = logging.getLogger(__name__)
 _LIBS_DIR = Path(__file__).parent / "libs"
 _GLES_PATH = _LIBS_DIR / "libGLESv2.so.2"
 
-# Candidate URLs — tried in order until one succeeds
+# Candidate URLs — Debian's CDN is more reliably accessible than Ubuntu's archive
 _DEB_URLS = [
-    # Ubuntu 22.04 (jammy) — Render's OS
-    "http://archive.ubuntu.com/ubuntu/pool/main/l/libglvnd/libgles2_1.4.0-1_amd64.deb",
-    "http://archive.ubuntu.com/ubuntu/pool/main/l/libglvnd/libgles2_1.4.0-1build1_amd64.deb",
-    "http://archive.ubuntu.com/ubuntu/pool/main/l/libglvnd/libgles2_1.4.0-1ubuntu1_amd64.deb",
-    # Ubuntu 20.04 (focal) — fallback, stub is ABI-compatible
-    "http://archive.ubuntu.com/ubuntu/pool/main/l/libglvnd/libgles2_1.3.2-1~ubuntu0.20.04.1_amd64.deb",
-    "http://archive.ubuntu.com/ubuntu/pool/main/l/libglvnd/libgles2_1.3.4-1_amd64.deb",
+    # Debian 12 (bookworm) — served via Cloudflare CDN, very reliable
+    "http://deb.debian.org/debian/pool/main/l/libglvnd/libgles2_1.6.0-1_amd64.deb",
+    "http://ftp.debian.org/debian/pool/main/l/libglvnd/libgles2_1.6.0-1_amd64.deb",
+    # Debian 11 (bullseye)
+    "http://deb.debian.org/debian/pool/main/l/libglvnd/libgles2_1.3.2-1_amd64.deb",
+    # Ubuntu mirrors (HTTPS)
+    "https://archive.ubuntu.com/ubuntu/pool/main/l/libglvnd/libgles2_1.4.0-1_amd64.deb",
+    "https://archive.ubuntu.com/ubuntu/pool/main/l/libglvnd/libgles2_1.4.0-1build1_amd64.deb",
 ]
 
 _SYSTEM_SEARCH_PATHS = [
