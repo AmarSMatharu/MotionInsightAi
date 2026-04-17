@@ -1,3 +1,5 @@
+import _ensure_gles  # noqa: F401 — must be first; preloads libGLESv2 before mediapipe
+
 import os
 import logging
 import tempfile
