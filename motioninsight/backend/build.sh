@@ -3,6 +3,7 @@
 set -euo pipefail
 
 echo "==> Installing system dependencies..."
+apt-get update -y
 apt-get install -y --no-install-recommends \
   libgles2 \
   libgl1-mesa-glx \
