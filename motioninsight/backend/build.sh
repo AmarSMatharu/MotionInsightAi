@@ -6,8 +6,10 @@ echo "==> Installing system dependencies..."
 apt-get update -y
 apt-get install -y --no-install-recommends \
   libgles2 \
-  libgl1-mesa-glx \
+  libgl1 \
+  libglx-mesa0 \
   libglib2.0-0
+ldconfig
 
 echo "==> Installing Python dependencies..."
 pip install --upgrade pip
