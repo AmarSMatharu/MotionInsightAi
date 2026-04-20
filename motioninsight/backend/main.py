@@ -27,7 +27,7 @@ app.add_middleware(
         "http://127.0.0.1:3000",
     ],
     allow_credentials=True,
-    allow_methods=["POST", "GET"],
+    allow_methods=["POST", "GET", "HEAD"],
     allow_headers=["Content-Type", "Accept"],
 )
 
@@ -96,7 +96,7 @@ def _safe_tolist(arr):
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok"}
 
